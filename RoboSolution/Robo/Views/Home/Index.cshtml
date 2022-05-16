@@ -1,0 +1,135 @@
+﻿<script type="text/javascript" src="~/Scripts/jquery-3.3.1.js"></script>
+
+<div id="body">
+    <label id="cabeca"></label><br />
+
+    <label id="cabecainclinacaoLabel">Cabeça Inclinação</label>
+    <select id="cabecaInclinacao" onchange="chanceValue(2)">
+        <option value="1">Para Cima</option>
+        <option value="2" selected="selected">Em Repouso</option>
+        <option value="3">Para Baixo</option>
+    </select>
+    <br />
+    <label id="cabecaRotacaoLabel">Cabeça Rotação</label>
+    <select id="cabecaRotacao" onchange="chanceValue(1)">
+        <option value="1">Rotação -90º</option>
+        <option value="2">Rotação -45º</option>
+        <option value="3" selected="selected">Em Repouso</option>
+        <option value="4">Rotação 45º</option>
+        <option value="5">Rotação 90º</option>
+    </select>
+    <br />
+    <label id="bracoDireitoCotoveloLabel">Cotovelo direito</label>
+    <select id="bracoDireitoCotovelo" onchange="chanceValue(5)">
+        <option value="1" selected="selected">Em Repouso</option>
+        <option value="2">Levemente Contraído</option>
+        <option value="3">Contraído</option>
+        <option value="4">Fortemente Contraído</option>
+    </select>
+    <br />
+    <label id="bracoDireitoPulsoLabel">Pulso Direito</label>
+    <select id="bracoDireitoPulso" onchange="chanceValue(3)">
+        <option value="1" selected="selected">Rotação para -90º</option>
+        <option value="2">Rotação para -45º</option>
+        <option value="3">Em Repouso</option>
+        <option value="4">Rotação para 45º</option>
+        <option value="5">Rotação para 90º</option>
+        <option value="6">Rotação para 135º</option>
+        <option value="7">Rotação para 180º</option>
+    </select>
+    <br />
+    <label id="bracoEsquerdoCotoveloLabel">Cotovelo Esquerdo</label>
+    <select id="bracoEsquerdoCotovelo" onchange="chanceValue(6)">
+        <option value="1" selected="selected">Em Repouso</option>
+        <option value="2">Levemente Contraído</option>
+        <option value="3">Contraído</option>
+        <option value="4">Fortemente Contraído</option>
+    </select>
+    <br />
+    <label id="bracoEsquerdoPulsoLabel">Pulso Esquerdo</label>
+    <select id="bracoEsquerdoPulso" onchange="chanceValue(4)">
+        <option value="1" selected="selected">Rotação para -90º</option>
+        <option value="2">Rotação para -45º</option>
+        <option value="3">Em Repouso</option>
+        <option value="4">Rotação para 45º</option>
+        <option value="5">Rotação para 90º</option>
+        <option value="6">Rotação para 135º</option>
+        <option value="7">Rotação para 180º</option>
+    </select>
+    <br />
+    <input type="hidden" id="jsonRobo" name="jsonRobo">
+</div>
+<script type="text/javascript">
+    $(document).ready(function () {
+        LoadRobo()
+    });
+
+
+
+    function LoadRobo() {
+        $.get("api/Robo/get",
+            function (value) {                
+                $("#jsonRobo").val(JSON.stringify(value));                
+                loadRobo();
+            },
+            "json"
+        );
+    }
+    
+
+    function chanceValue(movimentoModel) {
+        var movimentoSolicitado = 0;
+
+        switch (movimentoModel) {
+            case 1:
+                movimentoSolicitado = $("#cabecaRotacao").val(); //$("#cabecaRotacao option:selected").text()
+                break;
+            case 2:
+                movimentoSolicitado = $("#cabecaInclinacao").val();
+                break;
+            case 3:
+                movimentoSolicitado = $("#bracoDireitoPulso").val();
+                break;
+            case 4:
+                movimentoSolicitado = $("#bracoEsquerdoPulso").val();
+                break;
+            case 5:
+                movimentoSolicitado = $("#bracoDireitoCotovelo").val();
+                break;
+            case 6:
+                movimentoSolicitado = $("#bracoEsquerdoCotovelo").val();
+                break;
+        }
+
+        
+        $.post("api/Robo/PostMovimento",
+            {
+                movimento: movimentoSolicitado,
+                tipoMovimento: movimentoModel,
+                roboModel: JSON.parse($("#jsonRobo").val())
+            })
+            .done(function (value) {
+                $("#jsonRobo").val(JSON.stringify(value));
+            })
+            .fail(function (XMLHttpRequest, textStatus, errorThrown) {
+                alert(XMLHttpRequest.responseJSON.ExceptionMessage);
+                return false;
+            }).always(function () {
+                loadRobo();
+            })/*,
+            "json"*/
+        ;
+    }
+
+    function loadRobo() {
+        
+        var roboModel = JSON.parse($("#jsonRobo").val());
+
+        $("#cabecaRotacao").val(roboModel.cabeca.rotacaoCabeca);
+        $("#cabecaInclinacao").val(roboModel.cabeca.inclinacaoCabeca);
+        $("#bracoDireitoPulso").val(roboModel.bracoDireito.pulsoBraco);
+        $("#bracoEsquerdoPulso").val(roboModel.bracoEsquerdo.pulsoBraco);
+        $("#bracoDireitoCotovelo").val(roboModel.bracoDireito.cotoveloBraco);
+        $("#bracoEsquerdoCotovelo").val(roboModel.bracoEsquerdo.cotoveloBraco);
+    }
+</script>
